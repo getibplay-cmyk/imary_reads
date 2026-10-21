@@ -1,0 +1,1 @@
+<x-layout :title="$post->text('title')"><article class="container narrow section prose"><span class="eyebrow">{{ __('ui.journal_eyebrow') }}</span><h1>{{ $post->text('title') }}</h1><time>{{ $post->published_at->format('Y-m-d') }}</time>{!! $post->text('body') !!}</article></x-layout>

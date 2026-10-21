@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-10-21",
+  "phpunit": {
+    "tests": 84,
+    "assertions": 393,
+    "failed": 0,
+    "skipped": 0,
+    "php": "8.3.6",
+    "database": "sqlite"
+  },
+  "javascript": {
+    "tests": 4,
+    "failed": 0
+  },
+  "localization_after_final_labels": {
+    "tests": 7,
+    "assertions": 28,
+    "failed": 0,
+    "subset_of_phpunit_suite": true
+  },
+  "composer_audit": {
+    "advisory_count": 0,
+    "abandoned_count": 0
+  },
+  "npm_audit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "build": "passed",
+  "browser_qa": "Laravel-rendered static snapshots; home, library and book reader; desktop and 390px frame",
+  "github_upload": "blocked: 403 Resource not accessible by integration",
+  "not_executed": [
+    "Production deployment",
+    "Docker build",
+    "Real PostgreSQL tests",
+    "SMTP delivery",
+    "Positive ClamAV scan",
+    "Real mobile-device tests",
+    "Load test",
+    "Backup restoration"
+  ]
+}

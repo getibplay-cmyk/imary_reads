@@ -1,0 +1,15 @@
+@php($titles=['login'=>'login','register'=>'register','forgot'=>'reset_password','reset'=>'reset_password','verify'=>'verify_email','confirm'=>'confirm_password','twofactor'=>'twofactor'])
+<x-layout :title="__('ui.'.$titles[$type])"><section class="auth-page"><div class="auth-card panel"><img class="auth-logo" src="{{ asset('images/logo.svg') }}" alt="" width="64" height="64"><span class="eyebrow">{{ __('ui.auth_eyebrow') }}</span><h1>{{ __('ui.'.$titles[$type]) }}</h1>
+@php($actions=['login'=>'login.store','register'=>'register.store','forgot'=>'password.email','reset'=>'password.update','verify'=>'verification.send','confirm'=>'password.confirm','twofactor'=>'two-factor.login'])
+<form method="post" action="{{ route($actions[$type]) }}" class="stack">@csrf
+@if($type==='register')<x-field name="name" required maxlength="120" autocomplete="name"/><input type="hidden" name="locale" value="{{ app()->getLocale() }}">@endif
+@if(in_array($type,['login','register','forgot','reset']))<x-field name="email" type="email" :value="$type==='reset'?($request->email??''):''" required autocomplete="email" dir="ltr"/>@endif
+@if($type==='reset')<input type="hidden" name="token" value="{{ $request->route('token') }}">@endif
+@if(in_array($type,['login','register','reset','confirm']))<x-field name="password" type="password" required :autocomplete="in_array($type,['register','reset'])?'new-password':'current-password'"/>@endif
+@if(in_array($type,['register','reset']))<small class="muted">{{ __('ui.password_hint') }}</small><x-field name="password_confirmation" type="password" required autocomplete="new-password"/>@endif
+@if($type==='login')<label class="check"><input type="checkbox" name="remember" value="1">{{ __('ui.remember') }}</label><a class="muted" href="{{ route('password.request') }}">{{ __('ui.forgot_password') }}</a>@endif
+@if($type==='register')<label class="check"><input type="checkbox" name="writer" value="1" @checked(old('writer',request()->boolean('writer')))>{{ __('ui.writer_account') }}</label><label class="check"><input type="checkbox" name="terms" value="1" required>{{ __('ui.accept_terms') }}</label><div class="legal-links"><a href="{{ route('legal','terms') }}">{{ __('ui.terms') }}</a> · <a href="{{ route('legal','privacy') }}">{{ __('ui.privacy') }}</a></div>@endif
+@if($type==='verify')<p>{{ __('ui.verify_notice') }}</p>@endif
+@if($type==='twofactor')<x-field name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"/><details><summary>{{ __('ui.recovery_code') }}</summary><x-field name="recovery_code" autocomplete="off"/></details>@endif
+<button class="button full">{{ __('ui.'.match($type){'forgot'=>'send_reset','verify'=>'resend','twofactor','confirm'=>'confirm',default=>$titles[$type]}) }}</button></form>
+@if($type==='login')<a class="auth-switch" href="{{ route('register') }}">{{ __('ui.register') }}</a>@elseif($type==='register')<a class="auth-switch" href="{{ route('login') }}">{{ __('ui.login') }}</a>@endif</div></section></x-layout>

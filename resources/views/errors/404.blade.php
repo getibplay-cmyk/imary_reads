@@ -1,0 +1,1 @@
+<x-layout :title="__('ui.not_found')"><section class="container empty-state error-page"><span class="error-code">404</span><h1>{{ __('ui.not_found') }}</h1><a class="button" href="{{ route('home') }}">{{ __('ui.home') }}</a></section></x-layout>

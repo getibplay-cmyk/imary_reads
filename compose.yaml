@@ -1,0 +1,89 @@
+name: imary-reads
+x-app: &app
+  build:
+    context: .
+    target: app
+  image: imary-reads:local
+  env_file: .env
+  environment:
+    APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
+    APP_ENV: production
+    APP_DEBUG: "false"
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: 5432
+    DB_DATABASE: ${DB_DATABASE:-imary_reads}
+    DB_USERNAME: ${DB_USERNAME:-imary}
+    DB_PASSWORD: ${DB_PASSWORD:?Set a strong database password in .env}
+    CACHE_STORE: database
+    SESSION_DRIVER: database
+    SESSION_SECURE_COOKIE: "true"
+    SESSION_ENCRYPT: "true"
+    QUEUE_CONNECTION: database
+    DB_QUEUE_RETRY_AFTER: 150
+    LOG_CHANNEL: stderr
+    VIRUS_SCANNER: /usr/bin/clamscan
+  volumes:
+    - private-storage:/var/www/html/storage
+    - clam-definitions:/var/lib/clamav:ro
+  tmpfs:
+    - /tmp:size=128m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-imary_reads}
+      POSTGRES_USER: ${DB_USERNAME:-imary}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set a strong database password in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  app:
+    <<: *app
+  worker:
+    <<: *app
+    command: [php, artisan, queue:work, --sleep=2, --tries=3, --timeout=120, --max-time=3600]
+  scheduler:
+    <<: *app
+    command: [php, artisan, schedule:work]
+  signatures:
+    image: imary-reads:local
+    user: clamav
+    command: [freshclam, --daemon, --foreground=true, --stdout]
+    volumes:
+      - clam-definitions:/var/lib/clamav
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  web:
+    build:
+      context: .
+      target: web
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set the production hostname in .env}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [app]
+    restart: unless-stopped
+volumes:
+  postgres-data:
+  private-storage:
+  clam-definitions:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,2 @@
+@props(['name','label'=>null,'type'=>'text','value'=>'','required'=>false])
+<label class="field"><span>{{ $label ?? __('ui.'.$name) }}</span>@if($type==='textarea')<textarea name="{{ $name }}" {{ $attributes }} @required($required)>{{ old($name,$value) }}</textarea>@else<input type="{{ $type }}" name="{{ $name }}" value="{{ $type==='password'?'':old($name,$value) }}" {{ $attributes }} @required($required)>@endif</label>

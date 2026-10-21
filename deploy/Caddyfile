@@ -1,0 +1,22 @@
+{$SITE_DOMAIN} {
+    root * /var/www/html/public
+    encode zstd gzip
+    request_body {
+        max_size 24MB
+    }
+    @private path /.env /.git/* /storage/* /vendor/* /composer.* /package*.json
+    respond @private 404
+    @static path /build/* /images/*
+    header @static Cache-Control "public, max-age=86400"
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+    php_fastcgi app:9000 {
+        capture_stderr
+        read_timeout 65s
+    }
+    file_server
+}

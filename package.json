@@ -1,0 +1,22 @@
+{
+  "name": "imary-reads",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "node --test tests/js/*.test.js"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0",
+    "page-flip": "2.0.7",
+    "@fontsource/tajawal": "^5.2.0",
+    "@fontsource/noto-naskh-arabic": "^5.2.0",
+    "@fontsource/inter": "^5.2.0"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0",
+    "laravel-vite-plugin": "^3.1.0"
+  }
+}

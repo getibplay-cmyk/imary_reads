@@ -1,0 +1,1 @@
+<x-layout :title="__('ui.forbidden')"><section class="container empty-state error-page"><span class="error-code">403</span><h1>{{ __('ui.forbidden') }}</h1><a class="button" href="{{ route('home') }}">{{ __('ui.home') }}</a></section></x-layout>

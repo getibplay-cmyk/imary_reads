@@ -1,0 +1,1 @@
+<x-studio :title="__('ui.followers')"><div class="panel">@forelse($followers??[] as $follower)<div class="list-row"><span class="avatar">{{ mb_substr($follower->name,0,1) }}</span><b>{{ $follower->name }}</b></div>@empty<p>{{ __('ui.empty') }}</p>@endforelse</div>{{ $followers?->links('pagination') }}</x-studio>

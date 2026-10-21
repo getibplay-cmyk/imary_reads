@@ -1,0 +1,1 @@
+<x-layout :title="__('ui.expired')"><section class="container empty-state error-page"><span class="error-code">419</span><h1>{{ __('ui.expired') }}</h1><a class="button" href="{{ route('home') }}">{{ __('ui.home') }}</a></section></x-layout>

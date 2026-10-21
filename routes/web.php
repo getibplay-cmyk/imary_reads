@@ -1,0 +1,91 @@
+<?php
+
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\WriterController;
+use App\Http\Middleware\StaffTwoFactor;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', [CatalogController::class, 'home'])->name('home');
+Route::get('/library', [CatalogController::class, 'library'])->name('library');
+Route::get('/search', [CatalogController::class, 'search'])->middleware('throttle:search')->name('search');
+Route::get('/categories', [CatalogController::class, 'categories'])->name('categories');
+Route::get('/authors/{author}', [CatalogController::class, 'author'])->name('authors.show');
+Route::get('/blog', [CatalogController::class, 'blog'])->name('blog');
+Route::get('/blog/{post}', [CatalogController::class, 'post'])->name('posts.show');
+Route::view('/writers', 'writers')->name('writers');
+Route::get('/legal/{page}', fn (string $page) => in_array($page, ['terms', 'privacy', 'copyright'], true) ? view('legal', compact('page')) : abort(404))->name('legal');
+Route::post('/locale', [AccountController::class, 'locale'])->middleware('throttle:30,1')->name('locale');
+Route::get('/works/{work}/cover', [CatalogController::class, 'cover'])->withTrashed()->name('works.cover');
+Route::get('/works/{work}', [CatalogController::class, 'show'])->name('works.show');
+Route::get('/read/{work}/{chapter?}', [CatalogController::class, 'read'])->whereNumber('chapter')->name('reader');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/me', [AccountController::class, 'index'])->name('account');
+    Route::get('/settings', [AccountController::class, 'settings'])->name('account.settings');
+    Route::put('/settings', [AccountController::class, 'update'])->middleware('throttle:write')->name('account.update');
+    Route::view('/security', 'account.security')->middleware('password.confirm')->name('account.security');
+    Route::get('/notifications', [AccountController::class, 'notifications'])->name('notifications');
+    Route::post('/notifications/read', [AccountController::class, 'readNotifications'])->name('notifications.read');
+    Route::get('/account/export', [AccountController::class, 'export'])->middleware('password.confirm')->name('account.export');
+    Route::delete('/account', [AccountController::class, 'destroy'])->name('account.delete');
+});
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/become-writer', [AccountController::class, 'becomeWriter'])->middleware('throttle:write')->name('become-writer');
+    Route::middleware('throttle:community')->group(function () {
+        Route::post('/works/{work}/comments', [CommunityController::class, 'comment'])->name('comments.store');
+        Route::patch('/comments/{comment}', [CommunityController::class, 'moderate'])->name('comments.moderate');
+        Route::post('/works/{work}/review', [CommunityController::class, 'review'])->name('reviews.store');
+        Route::post('/works/{work}/favorite', [CommunityController::class, 'favorite'])->name('favorites');
+        Route::post('/authors/{author}/follow', [CommunityController::class, 'follow'])->name('follows');
+        Route::post('/works/{work}/report', [CommunityController::class, 'report'])->name('reports.store');
+        Route::post('/shelves', [CommunityController::class, 'shelf'])->name('shelves.store');
+        Route::delete('/shelves/{shelf}', [CommunityController::class, 'removeShelf'])->name('shelves.delete');
+        Route::post('/shelves/{shelf}/{work}', [CommunityController::class, 'shelfWork'])->name('shelves.work');
+    });
+    Route::post('/works/{work}/progress', [CommunityController::class, 'progress'])->middleware('throttle:write')->name('progress');
+    Route::post('/works/{work}/bookmark', [CommunityController::class, 'bookmark'])->middleware('throttle:write')->name('bookmarks.store');
+    Route::delete('/bookmarks/{bookmark}', [CommunityController::class, 'removeBookmark'])->name('bookmarks.delete');
+    Route::get('/works/{work}/download/{format}', [DownloadController::class, 'export'])->middleware('throttle:downloads')->name('downloads.export');
+    Route::get('/works/{work}/file/{file}', [DownloadController::class, 'file'])->middleware('throttle:downloads')->name('downloads.file');
+    Route::prefix('writer')->name('writer.')->middleware('throttle:write')->group(function () {
+        Route::get('/', [WriterController::class, 'index'])->name('index');
+        Route::get('/works/create', [WriterController::class, 'create'])->name('create');
+        Route::post('/works', [WriterController::class, 'store'])->name('store');
+        Route::get('/comments', [WriterController::class, 'comments'])->name('comments');
+        Route::get('/followers', [WriterController::class, 'followers'])->name('followers');
+        Route::get('/works/{work}/edit', [WriterController::class, 'edit'])->name('edit');
+        Route::put('/works/{work}', [WriterController::class, 'update'])->name('update');
+        Route::post('/works/{work}/restore', [WriterController::class, 'restoreWork'])->withTrashed()->name('restore');
+        Route::delete('/works/{work}', [WriterController::class, 'destroy'])->name('destroy');
+        Route::get('/works/{work}/chapters', [WriterController::class, 'chapters'])->name('chapters');
+        Route::get('/works/{work}/chapters/create', [WriterController::class, 'chapter'])->name('chapter.create');
+        Route::get('/works/{work}/chapters/{chapter}/edit', [WriterController::class, 'chapter'])->name('chapter.edit');
+        Route::post('/works/{work}/chapters', [WriterController::class, 'saveChapter'])->name('chapter.store');
+        Route::put('/works/{work}/chapters/{chapter}', [WriterController::class, 'saveChapter'])->name('chapter.update');
+        Route::delete('/works/{work}/chapters/{chapter}', [WriterController::class, 'deleteChapter'])->name('chapter.delete');
+        Route::post('/works/{work}/chapters/{chapter}/restore/{version}', [WriterController::class, 'restore'])->name('chapter.restore');
+        Route::post('/works/{work}/reorder', [WriterController::class, 'reorder'])->name('chapters.reorder');
+        Route::post('/works/{work}/files', [WriterController::class, 'upload'])->name('files.store');
+        Route::delete('/works/{work}/files/{file}', [WriterController::class, 'removeFile'])->name('files.delete');
+    });
+    Route::prefix('admin')->name('admin.')->middleware(['staff', StaffTwoFactor::class, 'password.confirm', 'throttle:write'])->group(function () {
+        Route::get('/', [AdminController::class, 'index'])->name('index');
+        Route::patch('/works/{work}', [AdminController::class, 'moderate'])->name('works');
+        Route::patch('/reports/{report}', [AdminController::class, 'resolve'])->name('reports');
+        Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::patch('/users/{user}', [AdminController::class, 'user'])->name('user');
+        Route::get('/taxonomy', [AdminController::class, 'taxonomy'])->name('taxonomy');
+        Route::post('/categories/{category?}', [AdminController::class, 'category'])->name('category');
+        Route::post('/authors/{author?}', [AdminController::class, 'author'])->name('author');
+        Route::get('/posts', [AdminController::class, 'posts'])->name('posts');
+        Route::post('/posts/{post?}', [AdminController::class, 'post'])->name('post');
+        Route::get('/files', [AdminController::class, 'files'])->name('files');
+        Route::post('/files/{file}/retry', [AdminController::class, 'retry'])->name('files.retry');
+        Route::get('/audit', [AdminController::class, 'audit'])->name('audit');
+        Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+        Route::put('/settings', [AdminController::class, 'saveSettings'])->name('settings.update');
+    });
+});
