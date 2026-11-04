@@ -8,7 +8,7 @@ COPY public ./public
 COPY vite.config.js ./
 RUN npm run build
 
-FROM php:8.3-fpm-bookworm AS app
+FROM php:8.5-fpm-bookworm AS app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev libsqlite3-dev libzip-dev libicu-dev libonig-dev libpng-dev libjpeg62-turbo-dev \
     libwebp-dev libxml2-dev unzip ca-certificates clamav clamav-freshclam \
