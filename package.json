@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@tiptap/core": "^3.0.0",
-    "@tiptap/starter-kit": "^3.0.0",
+    "@tiptap/starter-kit": "^3.33.0",
     "page-flip": "2.0.7",
     "@fontsource/tajawal": "^5.2.0",
     "@fontsource/noto-naskh-arabic": "^5.2.0",
